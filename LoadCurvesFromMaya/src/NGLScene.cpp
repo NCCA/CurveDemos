@@ -38,13 +38,12 @@ NGLScene::~NGLScene()
   std::cout<<"Shutting down NGL, removing VAO's and Shaders\n";
 }
 
-void NGLScene::resizeGL(int _w, int _h)
+void NGLScene::resizeGL(QResizeEvent *_event)
 {
-  // set the viewport for openGL
-  glViewport(0,0,_w,_h);
+  m_width=_event->size().width()*devicePixelRatio();
+  m_height=_event->size().height()*devicePixelRatio();
   // now set the camera size values as the screen size has changed
-  m_cam->setShape(45,(float)_w/_h,0.05f,350.0f);
-  update();
+  m_cam.setShape(45.0f,(float)width()/height(),0.05f,350.0f);
 }
 
 
@@ -62,25 +61,21 @@ void NGLScene::initializeGL()
   // Now we will create a basic Camera from the graphics library
   // This is a static camera so it only needs to be set once
   // First create Values for the camera position
-  ngl::Vec3 from(0,1,15);
-  ngl::Vec3 to(0,0,0);
-  ngl::Vec3 up(0,1,0);
-  m_cam= new ngl::Camera(from,to,up);
+  ngl::Vec3 from(0.0f,1.0f,15.0f);
+  ngl::Vec3 to(0.0f,0.0f,0.0f);
+  ngl::Vec3 up(0.0f,1.0f,0.0f);
+  m_cam.set(from,to,up);
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
-  m_cam->setShape(45,(float)720.0/576.0,0.5,150);
+  m_cam.setShape(45.0f,(float)720.0f/576.0f,0.5f,150.0f);
   // now to load the shader and set the values
   // grab an instance of shader manager
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
   (*shader)["nglColourShader"]->use();
-  shader->setShaderParam4f("Colour",1,1,1,1);
+  shader->setShaderParam4f("Colour",1.0f,1.0f,1.0f,1.0f);
 
   loadCurves();
-  // as re-size is not explicitly called we need to do this.
-  glViewport(0,0,width(),height());
-
-
 }
 
 void NGLScene::loadCurves()
@@ -102,8 +97,7 @@ void NGLScene::loadCurves()
        if(lines[0]=="Curve")
        {
          std::cout<<"got curve \n";
-         ngl::BezierCurve *curve=new ngl::BezierCurve();
-         m_curves.push_back(curve);
+         m_curves.push_back(std::unique_ptr<ngl::BezierCurve>(new ngl::BezierCurve()));
          ++index;
        }
        else if(lines[0]=="P")
@@ -118,7 +112,7 @@ void NGLScene::loadCurves()
      file.close();
    }
    std::cout<<"done file read\n";
-   BOOST_FOREACH(ngl::BezierCurve *p, m_curves)
+   for(auto &p : m_curves)
    {
      p->setLOD(200);
      p->createKnots();
@@ -132,7 +126,7 @@ void NGLScene::loadMatricesToShader()
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   (*shader)["nglColourShader"]->use();
   ngl::Mat4 MVP;
-  MVP= m_mouseGlobalTX*m_cam->getVPMatrix() ;
+  MVP= m_mouseGlobalTX*m_cam.getVPMatrix() ;
   shader->setShaderParamFromMat4("MVP",MVP);
  }
 
@@ -158,7 +152,7 @@ void NGLScene::paintGL()
    (*shader)["nglColourShader"]->use();
 
 
-   BOOST_FOREACH(ngl::BezierCurve *c, m_curves)
+   for(auto &c : m_curves)
    {
      shader->setShaderParam4f("Colour",1,1,1,1);
      c->draw();
@@ -279,6 +273,5 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
   default : break;
   }
   // finally update the GLWindow and re-draw
-  //if (isExposed())
-    update();
+  update();
 }
