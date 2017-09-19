@@ -55,7 +55,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
   (*shader)["nglColourShader"]->use();
-  shader->setShaderParam4f("Colour",1.0f,1.0f,1.0f,1.0f);
+  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
 
   m_curve.reset(new ngl::BezierCurve());
   m_curve->addPoint(ngl::Vec3(-5.0f,0.0f,-5.0f));
@@ -74,7 +74,7 @@ void NGLScene::loadMatricesToShader()
   (*shader)["nglColourShader"]->use();
   ngl::Mat4 MVP;
   MVP= m_mouseGlobalTX*m_cam.getVPMatrix() ;
-  shader->setShaderParamFromMat4("MVP",MVP);
+  shader->setUniform("MVP",MVP);
  }
 
 void NGLScene::paintGL()
@@ -98,14 +98,14 @@ void NGLScene::paintGL()
 
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
   (*shader)["nglColourShader"]->use();
-  shader->setShaderParam4f("Colour",1.0f,1.0f,1.0f,1.0f);
+  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
   m_curve->draw();
   glPointSize(4);
-  shader->setShaderParam4f("Colour",0.0f,1.0f,0.0f,1.0f);
+  shader->setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
 
   m_curve->drawControlPoints();
   glPointSize(1);
-  shader->setShaderParam4f("Colour",1.0f,0.0f,0.0f,1.0f);
+  shader->setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
 
   m_curve->drawHull();
 }

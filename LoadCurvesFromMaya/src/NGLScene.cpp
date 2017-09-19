@@ -13,7 +13,6 @@
 #include <ngl/ShaderLib.h>
 
 
-
 NGLScene::NGLScene()
 {
   // re-size the widget to that of the parent (in this case the GLFrame passed in on construction)
@@ -59,7 +58,7 @@ void NGLScene::initializeGL()
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
   (*shader)["nglColourShader"]->use();
-  shader->setShaderParam4f("Colour",1.0f,1.0f,1.0f,1.0f);
+  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
 
   loadCurves();
 }
@@ -113,7 +112,7 @@ void NGLScene::loadMatricesToShader()
   (*shader)["nglColourShader"]->use();
   ngl::Mat4 MVP;
   MVP= m_mouseGlobalTX*m_cam.getVPMatrix() ;
-  shader->setShaderParamFromMat4("MVP",MVP);
+  shader->setUniform("MVP",MVP);
  }
 
 void NGLScene::paintGL()
@@ -140,14 +139,14 @@ void NGLScene::paintGL()
 
    for(auto &c : m_curves)
    {
-     shader->setShaderParam4f("Colour",1,1,1,1);
+     shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
      c->draw();
      glPointSize(4);
-     shader->setShaderParam4f("Colour",0,1,0,1);
+     shader->setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
 
      c->drawControlPoints();
      glPointSize(1);
-     shader->setShaderParam4f("Colour",1,0,0,1);
+     shader->setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
 
      c->drawHull();
 
