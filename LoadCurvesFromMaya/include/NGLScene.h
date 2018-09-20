@@ -1,9 +1,9 @@
 #ifndef NGLSCENE_H_
 #define NGLSCENE_H_
-#include <QOpenGLWindow>
 #include <ngl/BezierCurve.h>
 #include <ngl/Text.h>
 #include "WindowParams.h"
+#include <QOpenGLWindow>
 #include <memory>
 //----------------------------------------------------------------------------------------------------------------------
 /// @file NGLScene.h
