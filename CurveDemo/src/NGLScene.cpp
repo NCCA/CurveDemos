@@ -30,7 +30,7 @@ void NGLScene::initializeGL()
 {
   // we must call this first before any other GL commands to load and link the
   // gl commands from the lib, if this is not done program will crash
-  ngl::NGLInit::instance();
+  ngl::NGLInit::initialize();
 
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
   // enable depth testing for drawing
@@ -47,14 +47,11 @@ void NGLScene::initializeGL()
   // set the shape using FOV 45 Aspect Ratio based on Width and Height
   // The final two are near and far clipping planes of 0.5 and 10
   m_project=ngl::perspective(45.0f,720.0f/576.0f,0.5f,150.0f);
-  // now to load the shader and set the values
-  // grab an instance of shader manager
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
+  
+  ngl::ShaderLib::use(ngl::nglColourShader);
+  ngl::ShaderLib::setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
 
-  (*shader)[ngl::nglColourShader]->use();
-  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
-
-  m_curve.reset(new ngl::BezierCurve());
+  m_curve=std::make_unique<ngl::BezierCurve>();
   m_curve->addPoint(ngl::Vec3(-5.0f,0.0f,-5.0f));
   m_curve->addPoint(ngl::Vec3(-2.0f,2.0f,1.0f));
   m_curve->addPoint(ngl::Vec3(3.0f,-3.0f,-3.0f));
@@ -67,11 +64,10 @@ void NGLScene::initializeGL()
 
 void NGLScene::loadMatricesToShader()
 {
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)[ngl::nglColourShader]->use();
+  ngl::ShaderLib::use(ngl::nglColourShader);
   ngl::Mat4 MVP;
   MVP= m_project * m_view *m_mouseGlobalTX;
-  shader->setUniform("MVP",MVP);
+  ngl::ShaderLib::setUniform("MVP",MVP);
  }
 
 void NGLScene::paintGL()
@@ -93,16 +89,15 @@ void NGLScene::paintGL()
   m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
   loadMatricesToShader();
 
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)["nglColourShader"]->use();
-  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
+  ngl::ShaderLib::use("nglColourShader");
+  ngl::ShaderLib::setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
   m_curve->draw();
   glPointSize(4);
-  shader->setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
+  ngl::ShaderLib::setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
 
   m_curve->drawControlPoints();
   glPointSize(1);
-  shader->setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
+  ngl::ShaderLib::setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
 
   m_curve->drawHull();
 }

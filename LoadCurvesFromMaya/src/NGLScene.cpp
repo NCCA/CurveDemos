@@ -32,7 +32,7 @@ void NGLScene::initializeGL()
 {
   // we must call this first before any other GL commands to load and link the
   // gl commands from the lib, if this is not done program will crash
-  ngl::NGLInit::instance();
+  ngl::NGLInit::initialize();
 
   glClearColor(0.4f, 0.4f, 0.4f, 1.0f);			   // Grey Background
   // enable depth testing for drawing
@@ -47,13 +47,9 @@ void NGLScene::initializeGL()
   ngl::Vec3 up(0.0f,1.0f,0.0f);
   m_view=ngl::lookAt(from,to,up);
   m_project=ngl::perspective(45.0f,720.0f/576.0f,0.5f,150.0f);
-  // now to load the shader and set the values
-  // grab an instance of shader manager
-  auto *shader=ngl::ShaderLib::instance();
-
-  (*shader)[ngl::nglColourShader]->use();
-  shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
-
+  
+  ngl::ShaderLib::use(ngl::nglColourShader);
+  ngl::ShaderLib::setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
   loadCurves();
 }
 
@@ -71,7 +67,7 @@ void NGLScene::loadCurves()
      {
 
        line = t.readLine();
-       //std::cout<<"line "<<line.toStdString()<<"\n";
+       //std::cout<<"line "<<line.toStdString()<<'\n';
        QStringList lines=line.split(" ");
        if(lines[0]=="Curve")
        {
@@ -81,8 +77,8 @@ void NGLScene::loadCurves()
        }
        else if(lines[0]=="P")
        {
-         std::cout<<"adding at index"<<index<<"\n";
-         std::cout<<"p "<<lines[1].toFloat()<<" "<<lines[2].toFloat()<<" "<<lines[3].toFloat()<<"\n";
+         std::cout<<"adding at index"<<index<<'\n';
+         std::cout<<"p "<<lines[1].toFloat()<<" "<<lines[2].toFloat()<<" "<<lines[3].toFloat()<<'\n';
          m_curves[index]->addPoint(lines[1].toFloat(),lines[2].toFloat(),lines[3].toFloat());
        }
        // line of text excluding '\n'
@@ -102,11 +98,10 @@ void NGLScene::loadCurves()
 
 void NGLScene::loadMatricesToShader()
 {
-  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-  (*shader)[ngl::nglColourShader]->use();
+  ngl::ShaderLib::use(ngl::nglColourShader);
   ngl::Mat4 MVP;
   MVP= m_project * m_view * m_mouseGlobalTX;
-  shader->setUniform("MVP",MVP);
+  ngl::ShaderLib::setUniform("MVP",MVP);
  }
 
 void NGLScene::paintGL()
@@ -127,20 +122,19 @@ void NGLScene::paintGL()
    m_mouseGlobalTX.m_m[3][2] = m_modelPos.m_z;
    loadMatricesToShader();
 
-   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
-   (*shader)["nglColourShader"]->use();
+   ngl::ShaderLib::use("nglColourShader");
 
 
    for(auto &c : m_curves)
    {
-     shader->setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
+     ngl::ShaderLib::setUniform("Colour",1.0f,1.0f,1.0f,1.0f);
      c->draw();
      glPointSize(4);
-     shader->setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
+     ngl::ShaderLib::setUniform("Colour",0.0f,1.0f,0.0f,1.0f);
 
      c->drawControlPoints();
      glPointSize(1);
-     shader->setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
+     ngl::ShaderLib::setUniform("Colour",1.0f,0.0f,0.0f,1.0f);
 
      c->drawHull();
 
