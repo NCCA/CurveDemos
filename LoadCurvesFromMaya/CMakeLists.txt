@@ -43,7 +43,7 @@ target_link_libraries(${TargetName} PRIVATE  NGL Qt::Widgets Qt::OpenGL)
 
 
 
-add_custom_target(CopyShaders ALL
+add_custom_target(${TargetName}CopyShaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_SOURCE_DIR}/loads.curve
     $<TARGET_FILE_DIR:${TargetName}>/loads.curve
